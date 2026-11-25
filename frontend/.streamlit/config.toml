@@ -1,9 +1,17 @@
 [theme]
 base = "light"
 primaryColor = "#4f46e5"
-backgroundColor = "#f8fafc"
-secondaryBackgroundColor = "#eef2ff"
-textColor = "#0f172a"
+backgroundColor = "#f7f8fc"
+secondaryBackgroundColor = "#eef1fb"
+textColor = "#111827"
+borderColor = "#e3e7f1"
+linkColor = "#4f46e5"
+greenColor = "#10b981"
+redColor = "#ef4444"
+baseRadius = "12px"
+buttonRadius = "10px"
+paddingTop = "0rem"
+paddingBottom = "0rem"
 
 [server]
 maxUploadSize = 30

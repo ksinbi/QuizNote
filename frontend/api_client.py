@@ -84,6 +84,10 @@ def generate(session_id: str, settings: dict) -> dict:
     return _request("POST", f"/sessions/{session_id}/quiz", json=settings)
 
 
+def cancel_generation(session_id: str) -> dict:
+    return _request("POST", f"/sessions/{session_id}/quiz/cancel", timeout=15)
+
+
 def progress(session_id: str) -> dict:
     return _request("GET", f"/sessions/{session_id}/progress", timeout=15)
 

@@ -41,8 +41,10 @@ _SESSION_DEFAULTS = {
     "uploaded_file_id": None,
     "upload_error": None,
     "uploader_nonce": 0,
+    "preview_open": False,
     "quiz_cache": None,
     "quiz_error": None,
+    "quiz_choice": {},  # 문제별로 선택한(아직 제출하지 않은) 객관식 보기
     "tutor": {},
     "tutor_error": None,
     "gen_error": None,
@@ -50,6 +52,7 @@ _SESSION_DEFAULTS = {
     "report_cache": None,
     "notion_ui": None,
     "notion_open": False,
+    "notion_page_auth": None,  # 'Notion 연동' 화면의 로그인 창 주소
     "history_selected": None,
     "record_cache": None,
 }
@@ -167,6 +170,7 @@ def clear_study_cache() -> None:
     for k in ("quiz_cache", "quiz_error", "gen_error", "gen_started", "report_cache"):
         st.session_state[k] = copy.deepcopy(_SESSION_DEFAULTS[k])
     ss().tutor = {}
+    ss().quiz_choice = {}
 
 
 def reset_flow() -> None:

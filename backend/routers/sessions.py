@@ -106,7 +106,7 @@ def _attach_sources(session: QuizSession, questions: list[dict]) -> list[dict]:
     return out
 
 
-def _generate_job(session_id: str, cfg: QuizSettings) -> None:
+def _generate_job(session_id: str, cfg: QuizSettings, job_id: str) -> None:
     try:
         progress.set_stage(session_id, "extract", "문서를 불러오는 중")
         session = store.get(session_id)
@@ -127,15 +127,20 @@ def _generate_job(session_id: str, cfg: QuizSettings) -> None:
 
         progress.set_stage(session_id, "sources", "PDF 페이지 정보를 연결하는 중")
         questions = _attach_sources(session, questions)
+        if not progress.is_current(session_id, job_id):
+            logger.info("취소되었거나 새 작업으로 바뀐 문제 생성 결과는 저장하지 않습니다 (%s)", session_id)
+            return
+        # 생성하는 동안 바뀌었을 수 있는 값(요약 등)을 덮어쓰지 않도록 최신 세션에 문제만 반영
+        session = store.get(session_id)
         session.settings = cfg.model_dump()
         session.set_questions(questions)
         store.save(session)
-        progress.finish(session_id)
+        progress.finish(session_id, job_id)
     except QuizGenerationError as e:
-        progress.fail(session_id, str(e))
+        progress.fail(session_id, str(e), job_id)
     except Exception as e:  # noqa: BLE001 — 어떤 오류든 사용자에게 안내
         logger.exception("문제 생성 실패")
-        progress.fail(session_id, friendly_llm_error(e))
+        progress.fail(session_id, friendly_llm_error(e), job_id)
 
 
 @router.post("/{session_id}/quiz", status_code=202)
@@ -144,10 +149,18 @@ def create_quiz(
 ):
     """문제 생성 작업 시작 → GET /sessions/{id}/progress 로 진행 상황 확인"""
     _owned(session_id, user)
-    if not progress.start(session_id):
+    job_id = progress.start(session_id)
+    if job_id is None:
         raise HTTPException(409, "이미 문제를 생성하고 있습니다.")
-    background.add_task(_generate_job, session_id, cfg)
+    background.add_task(_generate_job, session_id, cfg, job_id)
     return progress.get(session_id)
+
+
+@router.post("/{session_id}/quiz/cancel")
+def cancel_quiz(session_id: str, user: User = Depends(get_current_user)):
+    """진행 중인 문제 생성 취소 (결과를 저장하지 않음). 취소 후 바로 다시 생성할 수 있습니다."""
+    _owned(session_id, user)
+    return {"cancelled": progress.cancel(session_id)}
 
 
 @router.get("/{session_id}/progress")

@@ -52,7 +52,7 @@ AI_PROJECT/
 │   ├── app.py                  # 진입점: 로그인 확인 · 상단 바 · 단계별 화면 전환
 │   ├── api_client.py           # 백엔드 호출 (UI와 분리)
 │   ├── state.py                # 세션 상태 · 로그인 쿠키 · 학습 진행 단계(DB 저장)
-│   ├── views/                  # auth · upload · settings · generating · quiz · summary · notion_dialog · done · history
+│   ├── views/                  # auth · setup(업로드+설정) · generating · quiz · summary · notion_dialog · notion_page · done · history
 │   ├── components/ui.py        # 단계 표시 · 문제/채점 카드 · 통계 카드
 │   ├── assets/style.css · .streamlit/config.toml
 │   └── Dockerfile
@@ -113,6 +113,7 @@ docker compose up --build
 | POST | `/sessions` | PDF 업로드 → 추출 · 청킹 · 인덱싱 |
 | GET | `/sessions/{id}` | 세션 상태 (새로고침 복원용, 정답 제외) |
 | POST | `/sessions/{id}/quiz` | 문제 생성 작업 시작 (202) |
+| POST | `/sessions/{id}/quiz/cancel` | 문제 생성 취소 (결과 저장 안 함, 바로 다시 생성 가능) |
 | GET | `/sessions/{id}/progress` | 생성 진행 단계 |
 | POST | `/sessions/{id}/answer` | 채점 (객관식 판정 / 서술형 의미 기반 AI 채점) |
 | POST | `/sessions/{id}/chat` | AI 튜터 (힌트) |

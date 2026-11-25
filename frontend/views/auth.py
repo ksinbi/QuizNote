@@ -7,20 +7,22 @@ from components import ui
 
 
 def render() -> None:
+    st.space("large")
     left, right = st.columns([1.1, 1], gap="large")
     with left:
         ui.html_block(
-            """<div class="qn-hero">
-  <div class="qn-brand"><i>Q</i>Quiz Note</div>
+            f"""<div class="qn-hero">
+  {ui.brand(light=True)}
   <h2>PDF 한 장으로<br>나만의 문제집을 만드세요</h2>
   <ul>
-    <li>📄 PDF 업로드 → AI가 핵심 내용 분석</li>
-    <li>💬 채팅으로 한 문제씩 풀고 즉시 채점 · 해설</li>
-    <li>📝 학습 결과를 계정 또는 Notion에 저장</li>
+    <li>PDF 업로드 → AI가 핵심 내용 분석</li>
+    <li>채팅으로 한 문제씩 풀고 즉시 채점 · 해설</li>
+    <li>궁금한 점은 AI 튜터에게 바로 질문</li>
+    <li>학습 결과를 내 문제집 또는 Notion에 저장</li>
   </ul>
 </div>"""
         )
-    with right:
+    with right, st.container(key="qn_card_auth"):
         login_tab, register_tab = st.tabs(["로그인", "회원가입"])
         with login_tab, st.form("login"):
             email = st.text_input("이메일", placeholder="you@example.com", key="login_email")

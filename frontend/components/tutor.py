@@ -11,14 +11,12 @@ import streamlit as st
 
 import api_client as api
 import state
-
-AI_AVATAR = "🤖"
-USER_AVATAR = "🙂"
+from components import ui
 
 _TOOL_LABELS = {
-    "search_lecture_notes": "📄 학습 자료 검색",
-    "web_search": "🌐 웹 검색",
-    "get_quiz_progress": "📊 풀이 기록 확인",
+    "search_lecture_notes": ":material/description: 학습 자료 검색",
+    "web_search": ":material/travel_explore: 웹 검색",
+    "get_quiz_progress": ":material/insights: 풀이 기록 확인",
 }
 
 HINT_PROMPT = "이 문제를 풀 수 있도록 정답은 말하지 말고 힌트만 주세요."
@@ -37,15 +35,22 @@ def entries_for(sid: str, qid: int | None, after: bool | None = None) -> list[di
     return [e for e in log(sid) if e["qid"] == qid and (after is None or e["after"] == after)]
 
 
+_OLD_EMOJI = "💡🤔🎯❌✏️\ufe0f "  # 예전 버전에서 저장된 질문 라벨 앞의 이모지
+
+
+def _question_bubble(label: str) -> None:
+    label = label.lstrip(_OLD_EMOJI) or label
+    ui.html_block(ui.my_bubble(label, "AI 튜터에게 질문").replace('class="qn-me"', 'class="qn-me ask"', 1))
+
+
 def render_entries(entries: list[dict]) -> None:
     for e in entries:
-        with st.chat_message("user", avatar=USER_AVATAR):
-            st.markdown(e["label"])
-        with st.chat_message("assistant", avatar=AI_AVATAR):
+        _question_bubble(e["label"])
+        with st.chat_message("assistant", avatar=ui.BOT_AVATAR), st.container(key=f"qn_reply_{id(e)}"):
             st.markdown(e["reply"])
             tools = [_TOOL_LABELS[t] for t in dict.fromkeys(e.get("tools") or []) if t in _TOOL_LABELS]
             if tools:
-                st.caption(" · ".join(tools))
+                st.caption("\u2002·\u2002".join(tools))
 
 
 def ask(
@@ -63,9 +68,8 @@ def ask(
     """
     shown = label or message
     with container:
-        with st.chat_message("user", avatar=USER_AVATAR):
-            st.markdown(shown)
-        with st.chat_message("assistant", avatar=AI_AVATAR), st.spinner("튜터가 답변을 준비하는 중..."):
+        _question_bubble(shown)
+        with st.chat_message("assistant", avatar=ui.BOT_AVATAR), st.spinner("튜터가 답변을 준비하는 중..."):
             try:
                 res = api.chat(sid, message, qid, use_web, label)
             except api.APIError as e:
