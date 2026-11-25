@@ -1,0 +1,9 @@
+.venv/
+venv/
+.env
+*.db
+.git/
+**/__pycache__/
+**/*.pyc
+.DS_Store
+**/.claude/

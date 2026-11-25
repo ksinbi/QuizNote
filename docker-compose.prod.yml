@@ -1,0 +1,26 @@
+# 서버 배포용: Caddy가 HTTPS 인증서를 자동 발급하고 도메인 하나로 앱과 Notion 콜백을 중계합니다.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# .env에 DOMAIN(예: quiz.example.com)과 POSTGRES_PASSWORD를 꼭 설정하세요.
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: "${DOMAIN:?.env에 DOMAIN을 설정하세요}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [frontend, backend]
+
+  db:
+    restart: unless-stopped
+  backend:
+    restart: unless-stopped
+  frontend:
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

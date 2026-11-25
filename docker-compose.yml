@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: quiznote
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quiznote}
+      POSTGRES_DB: quiznote
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quiznote"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://quiznote:${POSTGRES_PASSWORD:-quiznote}@db:5432/quiznote
+    volumes:
+      - hf_cache:/root/.cache/huggingface   # 임베딩 모델을 재시작할 때마다 다시 받지 않도록
+    # 이 컴퓨터에서만 접속 가능 (서버 배포 시 외부 접속은 Caddy가 HTTPS로 중계)
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  frontend:
+    build: { context: frontend }
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports: ["127.0.0.1:8501:8501"]
+    depends_on: [backend]
+
+volumes:
+  pgdata:
+  hf_cache:
